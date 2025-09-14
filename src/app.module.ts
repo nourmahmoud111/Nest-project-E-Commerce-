@@ -16,14 +16,15 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 
 @Module({
+
   imports: [
     UsersModule,
     ReviewModule,
     ProductsModule,
     UploadsModule,
     MailModule,
-    TypeOrmModule.forRootAsync({
-   inject: [ConfigService],
+    TypeOrmModule.forRootAsync({    // Database connection with TypeORM
+   inject: [ConfigService],         // Inject ConfigService to read environment variables
    useFactory: (config: ConfigService) => { 
     return {
      type: "postgres",
@@ -32,25 +33,30 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
      password: config.get<string>("DB_PASSWORD"),
      port: config.get<number>("DB_PORT"),
      host: "localhost",
-     synchronize: process.env.NODE_ENV !== "production", //only in development
-     entities: [Product,Review,User],
+     synchronize: process.env.NODE_ENV !== "production",  //  Auto-sync schema only in development, not in production , we should migration with typeorm with remote db not local db
+     entities: [Product,Review,User],                   // entities to sync with db
    };
   },
   }), 
-  ConfigModule.forRoot({ 
-    isGlobal:true,
-    envFilePath: `.env.${process.env.NODE_ENV}`
-    }),ThrottlerModule.forRoot([//rate limiting for the request
+  ConfigModule.forRoot({ // ConfigModule (global), loads environment variables
+    isGlobal:true,      // available everywhere without re-importing
+    envFilePath: `.env.${process.env.NODE_ENV}` //// load correct .env file
+    }),ThrottlerModule.forRoot([     // ThrottlerModule → rate limiting for requests
       { 
       ttl:10000, //10sec
       limit:3, //3 requests every 10 seconds for a client
       }
   ])       ],
 
+
   controllers: [AppController],
+
+
   providers: [AppService ,
   {provide:APP_INTERCEPTOR,useClass:ClassSerializerInterceptor },//global interseptor //exclude property with class-validator in the entity (Transforming the Response )
-  {provide:APP_GUARD,useClass:ThrottlerGuard} //rate limiting
+  {provide:APP_GUARD,useClass:ThrottlerGuard} // Apply ThrottlerGuard globally → enforces rate limiting
               ],
+
+
 })
 export class AppModule {}

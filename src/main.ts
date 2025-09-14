@@ -4,14 +4,15 @@ import { ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule); // Create NestJS application using the root AppModule
 
-  app.useGlobalPipes(new ValidationPipe({
+  app.useGlobalPipes(new ValidationPipe({   // Apply global validation pipe
+
     whitelist:true, //strip any properties that do not have any decorators
     forbidNonWhitelisted:true, //throw error if non-whitelisted properties are present
   }))
 
-  app.enableCors({
+  app.enableCors({   //Enable CORS so frontend (React, Angular, etc.) can call backend
     origin:"http://localhost:3000"
   });
 
