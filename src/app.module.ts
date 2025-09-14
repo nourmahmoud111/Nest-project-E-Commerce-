@@ -9,13 +9,20 @@ import { Product } from './products/product.entity';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Review } from './review/review.entity';
 import { User } from './users/user.entity';
-import { APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { UploadsModule } from './uploads/uploads.module';
 import { MailModule } from './mail/mail.module';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 
 
 @Module({
-  imports: [UsersModule,ReviewModule, ProductsModule,UploadsModule,MailModule, TypeOrmModule.forRootAsync({
+  imports: [
+    UsersModule,
+    ReviewModule,
+    ProductsModule,
+    UploadsModule,
+    MailModule,
+    TypeOrmModule.forRootAsync({
    inject: [ConfigService],
    useFactory: (config: ConfigService) => { 
     return {
@@ -30,12 +37,20 @@ import { MailModule } from './mail/mail.module';
    };
   },
   }), 
-  ConfigModule.forRoot({ isGlobal:true,
-     envFilePath: `.env.${process.env.NODE_ENV}`
-    }), UploadsModule, MailModule
-],
+  ConfigModule.forRoot({ 
+    isGlobal:true,
+    envFilePath: `.env.${process.env.NODE_ENV}`
+    }),ThrottlerModule.forRoot([//rate limiting for the request
+      { 
+      ttl:10000, //10sec
+      limit:3, //3 requests every 10 seconds for a client
+      }
+  ])       ],
 
   controllers: [AppController],
-  providers: [AppService ,{provide:APP_INTERCEPTOR,useClass:ClassSerializerInterceptor }],//global interseptor //exclude property with class-validator in the entity (Transforming the Response )
+  providers: [AppService ,
+  {provide:APP_INTERCEPTOR,useClass:ClassSerializerInterceptor },//global interseptor //exclude property with class-validator in the entity (Transforming the Response )
+  {provide:APP_GUARD,useClass:ThrottlerGuard} //rate limiting
+              ],
 })
 export class AppModule {}
