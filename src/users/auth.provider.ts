@@ -24,7 +24,6 @@ export class AuthProvider {
 
 
             public  async register(RegisterDto:RegisterDto) {
-    
            const{email,username,password} = RegisterDto
     
            const userFromDb= await this.usersRepository.findOne({where:{email}})
