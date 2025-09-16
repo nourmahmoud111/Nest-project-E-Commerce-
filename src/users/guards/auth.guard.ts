@@ -18,11 +18,11 @@ export class AuthGuard implements CanActivate{
                 
 async canActivate(context: ExecutionContext) {
   const request: Request = context.switchToHttp().getRequest(); // get request
-  const [type, token] = request.headers.authorization?.split(" ") ?? []; //  split by space
+  const [type, token] = request.headers.authorization?.split(" ") ?? []; // Extract token from headers
 
   if (token && type === "Bearer") { //check
     try {
-      const payload: JWTPayloadType = await this.jwtService.verifyAsync(token, {
+      const payload: JWTPayloadType = await this.jwtService.verifyAsync(token, { //Validates the token using your JWT secret ,Extracts the payload { id: 1, email: "test@test.com", usertype: "ADMIN" })
         secret: this.configservice.get<string>("JWT_SECRET"),
       });
 
