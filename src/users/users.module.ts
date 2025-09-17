@@ -4,7 +4,7 @@ import { UsersController } from "./users.controller";
 import { TypeOrmModule } from "@nestjs/typeorm";
 import { User } from "./user.entity";
 import { JwtModule } from "@nestjs/jwt";
-import { ConfigService } from "@nestjs/config";
+import { ConfigModule, ConfigService } from "@nestjs/config";
 import { AuthProvider } from "./auth.provider";
 import { MulterModule } from "@nestjs/platform-express";
 import { diskStorage } from "multer";
@@ -17,6 +17,7 @@ import { MailModule } from "src/mail/mail.module";
   imports: [MailModule,
     TypeOrmModule.forFeature([User]),
   JwtModule.registerAsync({
+    imports: [ConfigModule],
     inject:[ConfigService],
     useFactory:(config:ConfigService) =>{
    return {  
